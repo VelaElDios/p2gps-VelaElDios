@@ -1,11 +1,11 @@
-name: CI
+name: CI-CD
 
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch:      # permite lanzarlo a mano desde la pestaña Actions
+  workflow_dispatch:
 
 jobs:
   build:
@@ -29,3 +29,19 @@ jobs:
         with:
           name: app-jar
           path: target/app.jar
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el .jar del job build
+        uses: actions/download-artifact@v6
+        with:
+          name: app-jar
+
+      - name: Desplegar en Azure App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: p2gps-velaeldios
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: app.jar
